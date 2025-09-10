@@ -1,5 +1,7 @@
 package com.omsauth.api.model;
 
+import org.antlr.v4.runtime.misc.NotNull;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.Column;
@@ -7,6 +9,7 @@ import jakarta.persistence.Column;
 
 public class registerUsers {
 
+	@NotNull
 	private String userName;
 	private String password;
 	private String lastLoginTime;

@@ -4,8 +4,10 @@ import org.springframework.security.core.Authentication;
 
 import java.util.Optional;
 
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -91,15 +93,15 @@ public class UserRegisterService {
 		}
 		return u;
 	}
-	public ResponseEntity<String> resetPassword(Integer userId, String newPassword) {
+	public ResponseEntity<Users> resetPassword(Integer userId, String newPassword) {
 		Users user=repo.findById(userId).orElseThrow(()->new userNotFoundException("User not found. Cannot reset password"));
 		if(user!=null)
 		{
 			BCryptPasswordEncoder encoder=new BCryptPasswordEncoder(12);
 			user.setPassword(encoder.encode(newPassword));
-			repo.save(user);
+			return ResponseEntity.ok(repo.save(user));
 		}
-		return ResponseEntity.ok("Password Changed Successfully");
+		return ResponseEntity.notFound().build();
 		
 	}
 	public ResponseEntity<String> deleteAccount(Integer userId) {
@@ -108,7 +110,54 @@ public class UserRegisterService {
        {
     	   repo.deleteById(userId);
        }
-       return ResponseEntity.ok("Account Deleted Successfully");
+       if (!repo.existsById(userId)) {
+    	    return ResponseEntity.ok("Deleted successfully");
+    	}
+    	return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Delete failed");
+
+	}
+	public ResponseEntity<Users> updateUser(registerUsers user,Integer userId) {
+		Users dbUser=repo.findById(userId).orElseThrow(()->new userNotFoundException("User not found to Update"));
+
+		if(dbUser!=null)
+		{
+			 dbUser.setUserName(user.getUserName());
+			 dbUser.setLastLoginTime(user.getLastLoginTime());
+			 dbUser.setAccountCreationTime(user.getAccountCreationTime());
+			 dbUser.setIsActive(user.getIsActive());
+			 dbUser.setPasswordChangedTime(user.getPasswordChangedTime());
+			 dbUser.setMobileNumber(user.getMobileNumber());
+			 dbUser.setAccountLocked(user.getAccountLocked());
+			 dbUser.setRole(user.getRole());
+			 dbUser.setRefreshToken(user.getRefreshToken());
+			 
+
+			 userDetailsDTO dbDetails = dbUser.getUserDetailsDTO();
+			    if (dbDetails == null) {
+			        dbDetails = new userDetailsDTO();
+			        dbDetails.setUser(dbUser); // set relationship
+			        dbUser.setUserDetailsDTO(dbDetails);
+			    }
+
+			    dbDetails.setFirstName(user.getFirstName());
+			    dbDetails.setLastName(user.getLastName());
+			    dbDetails.setAddress(user.getAddress());
+			    dbDetails.setAge(user.getAge());
+			    dbDetails.setCountry(user.getCountry());
+			    dbDetails.setDob(user.getDob());
+			    dbDetails.setDpUrl(user.getDpUrl());
+			    dbDetails.setGender(user.getGender());
+			    dbDetails.setSsn(user.getSsn());
+			    dbDetails.setSsnType(user.getSsnType());
+			    dbDetails.setState(user.getState());
+			    dbDetails.setZipCode(user.getZipCode());
+
+			    // 🔹 Save (cascade = true ensures UserDetailsDTO is also saved)
+			    Users updatedUser = repo.save(dbUser);
+
+			    return ResponseEntity.ok(updatedUser);
+		}
+		return ResponseEntity.notFound().build();
 	}
 	
 }
