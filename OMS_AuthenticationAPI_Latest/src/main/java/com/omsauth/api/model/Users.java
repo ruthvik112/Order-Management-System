@@ -1,5 +1,6 @@
 package com.omsauth.api.model;
 
+import org.antlr.v4.runtime.misc.NotNull;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -24,9 +25,11 @@ public class Users {
 	@Column(name = "user_id")
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer userId;
+	@NotNull
 	@Column(name = "user_name")
 	private String userName;
 	@JsonIgnore
+	@NotNull
 	@Column(name = "password")
 	private String password;
 	@Column(name = "last_login_time")
@@ -38,6 +41,7 @@ public class Users {
 	@Column(name = "password_changed_time")
 	private String passwordChangedTime;
 	@Column(name = "mobile_number", nullable = false)
+	@NotNull
 	private String mobileNumber;
 	@Column(name = "account_locked")
 	private String accountLocked;
